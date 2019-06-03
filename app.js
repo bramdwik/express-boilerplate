@@ -1,6 +1,8 @@
 /* global express */
 'use strict'
 
+require('dotenv').config();
+
 global.__root = __dirname;
 global.express = require('express');
 global.app = express();
@@ -11,11 +13,17 @@ const async = require('async');
 const middlewaresConfig = require('./app/config/middlewares');
 const routersConfig = require('./app/config/routes');
 const eventsConfig = require('./app/config/events');
+const mongoConfig = require('./app/config/database').mongodb;
 
 async.waterfall([
   routersConfig,
-  middlewaresConfig
-], () => {
+  middlewaresConfig,
+  mongoConfig
+], (err) => {
+  if (err) {
+    console.error(err);
+    process.exit(0);
+  }
   app.use(function(err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message;
