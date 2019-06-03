@@ -1,4 +1,4 @@
-/* global express */
+/* global express, app */
 'use strict'
 
 const express = require('express');
@@ -8,7 +8,7 @@ const logger = require('morgan');
 
 const createError = require('http-errors');
 
-function middlewares(app) {
+function middlewares(cb) {
   app.set('views', path.join(__dirname, '../views'));
   app.set('view engine', 'pug');
 
@@ -22,6 +22,7 @@ function middlewares(app) {
   app.use(function(req, res, next) {
     next(createError(404));
   });
+  cb();
 }
 
 module.exports = middlewares

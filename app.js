@@ -3,17 +3,19 @@
 
 global.__root = __dirname;
 global.express = require('express');
+global.app = express();
 
 const http = require('http');
+const async = require('async');
 
-const app = express();
+const middlewaresConfig = require('./app/config/middlewares');
+const routersConfig = require('./app/config/routes');
+const eventsConfig = require('./app/config/events');
 
-const middlewares = require('./app/config/middlewares');
-const routerConfig = require('./app/config/routes');
-const eventConfig = require('./app/config/events');
-
-routerConfig(app, () => {
-  middlewares(app);
+async.waterfall([
+  routersConfig,
+  middlewaresConfig
+], () => {
   app.use(function(err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message;
@@ -24,14 +26,14 @@ routerConfig(app, () => {
     res.render('error');
   });
 
-  const port = eventConfig.normalizePort(process.env.PORT || '3000');
+  const port = eventsConfig.normalizePort(process.env.PORT || '3000');
 
   app.set('port', port);
   const server = http.createServer(app);
 
-  server.listen(port, eventConfig.onListening.bind(server));
+  server.listen(port, eventsConfig.onListening.bind(server));
 
-  server.on('error', eventConfig.onError);
+  server.on('error', eventsConfig.onError);
 });
 
 // module.exports = app;
