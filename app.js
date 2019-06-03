@@ -1,41 +1,37 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+/* global express */
+'use strict'
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+global.__root = __dirname;
+global.express = require('express');
 
-var app = express();
+const http = require('http');
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+const app = express();
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+const middlewares = require('./app/config/middlewares');
+const routerConfig = require('./app/config/routes');
+const eventConfig = require('./app/config/events');
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+routerConfig(app, () => {
+  middlewares(app);
+  app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+  });
+
+  const port = eventConfig.normalizePort(process.env.PORT || '3000');
+
+  app.set('port', port);
+  const server = http.createServer(app);
+
+  server.listen(port, eventConfig.onListening.bind(server));
+
+  server.on('error', eventConfig.onError);
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-module.exports = app;
+// module.exports = app;

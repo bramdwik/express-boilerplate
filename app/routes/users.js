@@ -1,4 +1,5 @@
-var express = require('express');
+/* global express */
+
 var router = express.Router();
 
 /* GET users listing. */
